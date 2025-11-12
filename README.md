@@ -2,21 +2,24 @@
 
 Sistema completo de gestión de proyectos de construcción con arquitectura de microservicios escalable y moderna.
 
-## ✅ Estado del Proyecto: BACKEND 100% COMPLETADO
+## ✅ Estado del Proyecto: BACKEND + FRONTEND COMPLETADOS
 
-🎉 **Backend completamente funcional** con 7 microservicios operativos y documentación exhaustiva.
+🎉 **Sistema completamente funcional** con 7 microservicios backend y frontend con Next.js 14.
 
 ## 🎯 Características Principales
 
-- ✅ **7 Microservicios funcionales** (Auth, Projects, Files, Billing, Notifications, Analytics, API Gateway)
+- ✅ **7 Microservicios backend** (Auth, Projects, Files, Billing, Notifications, Analytics, API Gateway)
+- ✅ **Frontend con Next.js 14** + TypeScript + Tailwind CSS
 - ✅ **Sistema de roles diferenciados**: Staff, Customers y Contractors
+- ✅ **Dashboard adaptativo** según rol con KPIs en tiempo real
+- ✅ **Autenticación JWT** con refresh automático de tokens
 - ✅ **Permisos granulares** configurables por usuario
 - ✅ **Gestión completa de proyectos** con tasks, files y discussions
 - ✅ **Sistema de facturación** con invoices y proposals
 - ✅ **Notificaciones** multi-canal (Email, In-app, Push)
 - ✅ **Analytics** y reportes en tiempo real
 - ✅ **Alta disponibilidad** con health checks y graceful shutdown
-- ✅ **Seguridad** robusta (JWT, rate limiting, validaciones)
+- ✅ **Seguridad** robusta (JWT, rate limiting, validaciones, CORS)
 
 ## 🚀 Inicio Rápido
 
@@ -37,11 +40,18 @@ npm run migrate:dev
 # 5. Poblar con datos de prueba
 cd packages/shared && npm run db:seed && cd ../..
 
-# 6. Iniciar todos los servicios
+# 6. Iniciar backend
+npm run dev
+
+# 7. En otra terminal, iniciar frontend
+cd packages/frontend
+npm install
 npm run dev
 ```
 
-**¡Listo!** El backend está corriendo en http://localhost:3000
+**¡Listo!**
+- **Backend (API)**: http://localhost:3000
+- **Frontend**: http://localhost:3001
 
 ### Usuarios de Prueba
 
@@ -64,7 +74,7 @@ Ver guía completa en [SETUP.md](./SETUP.md)
 ## 🏗️ Arquitectura de Microservicios
 
 ```
-Frontend (Next.js - Pendiente)
+Frontend Next.js :3001
             ↓
     API Gateway :3000
    ↓   ↓   ↓   ↓   ↓   ↓
@@ -78,6 +88,7 @@ PostgreSQL + Redis
 
 | Servicio | Puerto | Estado | Descripción |
 |----------|--------|--------|-------------|
+| **Frontend** | 3001 | ✅ | Next.js 14, React 18, Tailwind CSS |
 | **API Gateway** | 3000 | ✅ | Punto de entrada único, rate limiting |
 | Auth Service | 3001 | ✅ | JWT, refresh tokens, permisos granulares |
 | Projects Service | 3002 | ✅ | Proyectos, tasks, asignaciones, discussions |
@@ -97,10 +108,12 @@ PostgreSQL + Redis
 - **Cache**: Redis 7
 - **Autenticación**: JWT con refresh tokens
 
-### Frontend (Pendiente)
-- **Framework**: Next.js 14
-- **UI**: React 18 + shadcn/ui
+### Frontend
+- **Framework**: Next.js 14 (App Router)
+- **UI**: React 18
 - **Estilos**: Tailwind CSS
+- **State**: Context API
+- **HTTP**: Axios con interceptors
 
 ### Infraestructura
 - **Contenedores**: Docker & Docker Compose
@@ -168,15 +181,22 @@ obra360-refactor/
 - [x] Seed con datos de prueba (6 usuarios, 3 proyectos, tasks, etc.)
 - [x] Documentación completa (SETUP, ARCHITECTURE, API)
 - [x] READMEs individuales por microservicio
+- [x] **Frontend** con Next.js 14
+  - [x] Login page con validación
+  - [x] Dashboard adaptativo por rol
+  - [x] AuthContext y API client
+  - [x] Refresh automático de tokens
+  - [x] Diseño responsive empresarial
 
 ### ⏳ Pendiente
 
-- [ ] **Frontend** con Next.js 14 + shadcn/ui
-  - [ ] Dashboard por rol (Staff, Customer, Contractor)
-  - [ ] Gestión de proyectos UI
-  - [ ] Sistema de archivos UI
+- [ ] **Expansión Frontend**
+  - [ ] CRUD completo de proyectos
+  - [ ] Gestión de tasks con drag & drop
+  - [ ] Sistema de archivos con upload
   - [ ] Chat/Discussions en tiempo real
   - [ ] Facturación UI
+  - [ ] Notificaciones en tiempo real
 - [ ] **Testing**
   - [ ] Unit tests (Jest)
   - [ ] Integration tests (Supertest)
@@ -203,6 +223,7 @@ npm run dev:billing      # Solo Billing Service
 npm run dev:notifications # Solo Notifications Service
 npm run dev:analytics    # Solo Analytics Service
 npm run dev:gateway      # Solo API Gateway
+npm run dev:frontend     # Solo Frontend
 ```
 
 ### Base de Datos
@@ -334,4 +355,4 @@ Refactorización completa desarrollada por **Claude Code** basándose en:
 
 ---
 
-**Nota**: El backend está 100% completado y documentado. El siguiente paso es implementar el frontend con Next.js 14.
+**Nota**: El sistema está completamente funcional con backend + frontend. Próximos pasos: testing y expansión de funcionalidades frontend.
