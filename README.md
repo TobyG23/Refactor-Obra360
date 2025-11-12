@@ -2,9 +2,9 @@
 
 Sistema completo de gestión de proyectos de construcción con arquitectura de microservicios escalable y moderna.
 
-## ✅ Estado del Proyecto: BACKEND + FRONTEND COMPLETADOS
+## ✅ Estado del Proyecto: BACKEND + FRONTEND + TESTING COMPLETADOS
 
-🎉 **Sistema completamente funcional** con 7 microservicios backend y frontend con Next.js 14.
+🎉 **Sistema completamente funcional** con 7 microservicios backend, frontend con Next.js 14 y suite de testing completa.
 
 ## 🎯 Características Principales
 
@@ -20,6 +20,7 @@ Sistema completo de gestión de proyectos de construcción con arquitectura de m
 - ✅ **Analytics** y reportes en tiempo real
 - ✅ **Alta disponibilidad** con health checks y graceful shutdown
 - ✅ **Seguridad** robusta (JWT, rate limiting, validaciones, CORS)
+- ✅ **Testing completo** con Jest y Supertest (unit + integration tests)
 
 ## 🚀 Inicio Rápido
 
@@ -69,6 +70,7 @@ Ver guía completa en [SETUP.md](./SETUP.md)
 - **[SETUP.md](./SETUP.md)** - Guía de instalación paso a paso
 - **[ARCHITECTURE.md](./ARCHITECTURE.md)** - Arquitectura del sistema
 - **[API.md](./API.md)** - Documentación completa de la API
+- **[TESTING.md](./TESTING.md)** - Guía de testing y cobertura
 - **packages/*/README.md** - Documentación de cada microservicio
 
 ## 🏗️ Arquitectura de Microservicios
@@ -163,7 +165,7 @@ obra360-refactor/
 
 ## 📝 Estado del Proyecto
 
-### ✅ Completado (Backend)
+### ✅ Completado
 
 - [x] Análisis de arquitectura actual
 - [x] Análisis de sistema de referencia (Intergraphic)
@@ -179,7 +181,7 @@ obra360-refactor/
 - [x] **Analytics Service** - Reportes, KPIs y activity logs
 - [x] **API Gateway** - Enrutamiento, rate limiting, CORS
 - [x] Seed con datos de prueba (6 usuarios, 3 proyectos, tasks, etc.)
-- [x] Documentación completa (SETUP, ARCHITECTURE, API)
+- [x] Documentación completa (SETUP, ARCHITECTURE, API, TESTING)
 - [x] READMEs individuales por microservicio
 - [x] **Frontend** con Next.js 14
   - [x] Login page con validación
@@ -187,6 +189,14 @@ obra360-refactor/
   - [x] AuthContext y API client
   - [x] Refresh automático de tokens
   - [x] Diseño responsive empresarial
+- [x] **Testing Suite Completa**
+  - [x] Unit tests para Auth Service (Jest)
+  - [x] Unit tests para Projects Service (Jest)
+  - [x] Unit tests para Files Service (Jest)
+  - [x] Unit tests para Billing Service (Jest)
+  - [x] Integration tests para API Gateway (Supertest)
+  - [x] Scripts de testing configurados
+  - [x] Documentación completa de testing
 
 ### ⏳ Pendiente
 
@@ -197,10 +207,10 @@ obra360-refactor/
   - [ ] Chat/Discussions en tiempo real
   - [ ] Facturación UI
   - [ ] Notificaciones en tiempo real
-- [ ] **Testing**
-  - [ ] Unit tests (Jest)
-  - [ ] Integration tests (Supertest)
+- [ ] **Testing Adicional**
   - [ ] E2E tests (Playwright)
+  - [ ] Frontend unit tests
+  - [ ] Performance tests
 - [ ] **CI/CD**
   - [ ] GitHub Actions pipelines
   - [ ] Automated testing
@@ -249,18 +259,24 @@ npm run docker:logs      # Ver logs de contenedores
 npm run build            # Build de todos los servicios
 npm run lint             # Ejecutar ESLint
 npm run format           # Formatear código con Prettier
-npm run test             # Ejecutar tests (cuando estén implementados)
 ```
 
-## 🧪 Testing (Pendiente)
+## 🧪 Testing
 
 ```bash
 npm run test             # Ejecutar todos los tests
-npm run test:unit        # Unit tests
-npm run test:integration # Integration tests
-npm run test:e2e         # End-to-end tests
+npm run test:unit        # Unit tests de servicios
+npm run test:integration # Integration tests (API Gateway)
 npm run test:coverage    # Coverage report
+npm run test:watch       # Tests en modo watch
+npm run test:auth        # Solo tests de Auth Service
+npm run test:projects    # Solo tests de Projects Service
+npm run test:files       # Solo tests de Files Service
+npm run test:billing     # Solo tests de Billing Service
+npm run test:gateway     # Solo tests de API Gateway
 ```
+
+Ver guía completa en [TESTING.md](./TESTING.md)
 
 ## 🔐 Seguridad
 
@@ -355,4 +371,4 @@ Refactorización completa desarrollada por **Claude Code** basándose en:
 
 ---
 
-**Nota**: El sistema está completamente funcional con backend + frontend. Próximos pasos: testing y expansión de funcionalidades frontend.
+**Nota**: El sistema está completamente funcional con backend + frontend + testing suite completa. Próximos pasos: expansión de funcionalidades frontend y E2E testing.
