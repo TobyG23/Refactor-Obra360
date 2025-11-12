@@ -1,0 +1,44 @@
+{
+  "name": "obra360-refactor",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Obra360 refactorizado con arquitectura de microservicios",
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "concurrently \"npm run dev:auth\" \"npm run dev:projects\" \"npm run dev:files\" \"npm run dev:billing\" \"npm run dev:notifications\" \"npm run dev:analytics\" \"npm run dev:gateway\" \"npm run dev:frontend\"",
+    "dev:auth": "npm run dev --workspace=@obra360/auth-service",
+    "dev:projects": "npm run dev --workspace=@obra360/projects-service",
+    "dev:files": "npm run dev --workspace=@obra360/files-service",
+    "dev:billing": "npm run dev --workspace=@obra360/billing-service",
+    "dev:notifications": "npm run dev --workspace=@obra360/notifications-service",
+    "dev:analytics": "npm run dev --workspace=@obra360/analytics-service",
+    "dev:gateway": "npm run dev --workspace=@obra360/api-gateway",
+    "dev:frontend": "npm run dev --workspace=@obra360/frontend",
+    "build": "npm run build --workspaces",
+    "test": "npm run test --workspaces",
+    "lint": "npm run lint --workspaces",
+    "format": "prettier --write \"packages/**/*.{ts,tsx,js,jsx,json,md}\"",
+    "migrate": "npm run migrate --workspace=@obra360/shared",
+    "migrate:dev": "npm run migrate:dev --workspace=@obra360/shared",
+    "studio": "npm run studio --workspace=@obra360/shared",
+    "docker:up": "docker-compose up -d",
+    "docker:down": "docker-compose down",
+    "docker:logs": "docker-compose logs -f"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.6",
+    "@typescript-eslint/eslint-plugin": "^6.17.0",
+    "@typescript-eslint/parser": "^6.17.0",
+    "concurrently": "^8.2.2",
+    "eslint": "^8.56.0",
+    "eslint-config-prettier": "^9.1.0",
+    "prettier": "^3.1.1",
+    "typescript": "^5.3.3"
+  },
+  "engines": {
+    "node": ">=20.0.0",
+    "npm": ">=10.0.0"
+  }
+}

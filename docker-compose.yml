@@ -1,0 +1,58 @@
+version: '3.9'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: obra360-postgres
+    environment:
+      POSTGRES_USER: obra360
+      POSTGRES_PASSWORD: obra360password
+      POSTGRES_DB: obra360_db
+    ports:
+      - '5432:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U obra360']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - obra360-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: obra360-redis
+    ports:
+      - '6379:6379'
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - obra360-network
+
+  # Opcional: PGAdmin para gestión de BD
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: obra360-pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@obra360.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - '5050:80'
+    depends_on:
+      - postgres
+    networks:
+      - obra360-network
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  obra360-network:
+    driver: bridge

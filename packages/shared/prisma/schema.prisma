@@ -1,0 +1,474 @@
+// Obra360 Database Schema
+// Sistema de permisos granulares con roles y permisos configurables
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../../../node_modules/.prisma/client"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================================================
+// ENUMS
+// ============================================================================
+
+enum UserRole {
+  STAFF       // Personal administrativo - acceso completo
+  CUSTOMER    // Clientes - acceso a sus proyectos
+  CONTRACTOR  // Contratistas/Personal - acceso limitado configurable
+}
+
+enum ProjectStatus {
+  DRAFT       // Borrador
+  ACTIVE      // En progreso
+  ON_HOLD     // En pausa
+  COMPLETED   // Completado
+  CANCELLED   // Cancelado
+}
+
+enum TaskStatus {
+  TODO        // Por hacer
+  IN_PROGRESS // En progreso
+  IN_REVIEW   // En revisión
+  COMPLETED   // Completado
+  CANCELLED   // Cancelado
+}
+
+enum TaskPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum InvoiceStatus {
+  DRAFT       // Borrador
+  SENT        // Enviada
+  PAID        // Pagada
+  OVERDUE     // Vencida
+  CANCELLED   // Cancelada
+}
+
+enum ProposalStatus {
+  DRAFT       // Borrador
+  SENT        // Enviada
+  ACCEPTED    // Aceptada
+  REJECTED    // Rechazada
+  EXPIRED     // Expirada
+}
+
+enum NotificationType {
+  EMAIL
+  IN_APP
+  PUSH
+}
+
+enum NotificationPriority {
+  LOW
+  NORMAL
+  HIGH
+}
+
+enum PermissionAction {
+  VIEW
+  CREATE
+  EDIT
+  DELETE
+}
+
+enum PermissionResource {
+  PROJECTS
+  TASKS
+  FILES
+  DISCUSSIONS
+  INVOICES
+  PROPOSALS
+  ANALYTICS
+  USERS
+}
+
+// ============================================================================
+// USERS & AUTHENTICATION
+// ============================================================================
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String   // Hash bcrypt
+  firstName String
+  lastName  String
+  role      UserRole @default(CUSTOMER)
+  isActive  Boolean  @default(true)
+  avatar    String?  // URL o path del avatar
+  phone     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relaciones
+  refreshTokens      RefreshToken[]
+  ownedProjects      Project[]               @relation("ProjectOwner") // Proyectos creados por staff
+  customerProjects   Project[]               @relation("CustomerProjects") // Proyectos del cliente
+  projectAssignments ProjectAssignment[]     // Proyectos asignados como contractor
+  assignedTasks      Task[]                  @relation("TaskAssignee")
+  createdTasks       Task[]                  @relation("TaskCreator")
+  uploadedFiles      File[]
+  discussions        Discussion[]
+  createdInvoices    Invoice[]               @relation("InvoiceCreator")
+  customerInvoices   Invoice[]               @relation("CustomerInvoices")
+  createdProposals   Proposal[]              @relation("ProposalCreator")
+  customerProposals  Proposal[]              @relation("CustomerProposals")
+  notifications      Notification[]
+  permissions        UserPermission[]        // Permisos personalizados del usuario
+  activityLogs       ActivityLog[]
+  notificationTokens NotificationToken[]
+
+  @@map("users")
+}
+
+model RefreshToken {
+  id        String   @id @default(uuid())
+  token     String   @unique
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@map("refresh_tokens")
+}
+
+// ============================================================================
+// PERMISSIONS SYSTEM - Sistema de permisos granulares
+// ============================================================================
+
+model UserPermission {
+  id       String             @id @default(uuid())
+  userId   String
+  user     User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  resource PermissionResource // Qué recurso (Projects, Tasks, etc.)
+  action   PermissionAction   // Qué acción (View, Create, Edit, Delete)
+  allowed  Boolean            @default(true) // true = permitido, false = denegado
+
+  // Opcional: Permisos específicos a nivel de registro
+  resourceId String?          // ID del recurso específico (ej: project ID)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, resource, action, resourceId])
+  @@index([userId])
+  @@index([userId, resource])
+  @@map("user_permissions")
+}
+
+// ============================================================================
+// PROJECTS
+// ============================================================================
+
+model Project {
+  id          String        @id @default(uuid())
+  name        String
+  description String?       @db.Text
+  status      ProjectStatus @default(DRAFT)
+
+  // Cliente del proyecto
+  customerId String
+  customer   User   @relation("CustomerProjects", fields: [customerId], references: [id])
+
+  // Staff que creó el proyecto
+  createdById String
+  createdBy   User   @relation("ProjectOwner", fields: [createdById], references: [id])
+
+  startDate   DateTime?
+  endDate     DateTime?
+  budget      Decimal?      @db.Decimal(12, 2)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relaciones
+  assignments ProjectAssignment[]
+  tasks       Task[]
+  files       File[]
+  discussions Discussion[]
+  invoices    Invoice[]
+  proposals   Proposal[]
+
+  @@index([customerId])
+  @@index([createdById])
+  @@index([status])
+  @@map("projects")
+}
+
+model ProjectAssignment {
+  id        String   @id @default(uuid())
+  projectId String
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role      String?  // Rol específico en el proyecto (ej: "Arquitecto", "Ingeniero")
+
+  assignedAt DateTime @default(now())
+
+  @@unique([projectId, userId])
+  @@index([projectId])
+  @@index([userId])
+  @@map("project_assignments")
+}
+
+// ============================================================================
+// TASKS
+// ============================================================================
+
+model Task {
+  id          String       @id @default(uuid())
+  title       String
+  description String?      @db.Text
+  status      TaskStatus   @default(TODO)
+  priority    TaskPriority @default(MEDIUM)
+
+  projectId String
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  // Asignado a
+  assignedToId String?
+  assignedTo   User?   @relation("TaskAssignee", fields: [assignedToId], references: [id], onDelete: SetNull)
+
+  // Creado por
+  createdById String
+  createdBy   User   @relation("TaskCreator", fields: [createdById], references: [id])
+
+  dueDate   DateTime?
+  startDate DateTime?
+  endDate   DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relaciones
+  files       File[]
+  discussions Discussion[]
+
+  @@index([projectId])
+  @@index([assignedToId])
+  @@index([status])
+  @@map("tasks")
+}
+
+// ============================================================================
+// FILES
+// ============================================================================
+
+model File {
+  id          String  @id @default(uuid())
+  filename    String
+  originalName String
+  path        String  // Ruta en el servidor o URL si es S3
+  mimeType    String
+  size        Int     // En bytes
+
+  projectId String?
+  project   Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  taskId String?
+  task   Task?   @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  uploadedById String
+  uploadedBy   User   @relation(fields: [uploadedById], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([projectId])
+  @@index([taskId])
+  @@index([uploadedById])
+  @@map("files")
+}
+
+// ============================================================================
+// DISCUSSIONS
+// ============================================================================
+
+model Discussion {
+  id      String  @id @default(uuid())
+  message String  @db.Text
+
+  projectId String?
+  project   Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  taskId String?
+  task   Task?   @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+
+  // Para hilos de conversación
+  parentId String?
+  parent   Discussion?  @relation("DiscussionReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies  Discussion[] @relation("DiscussionReplies")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([projectId])
+  @@index([taskId])
+  @@index([userId])
+  @@index([parentId])
+  @@map("discussions")
+}
+
+// ============================================================================
+// BILLING - Invoices & Proposals
+// ============================================================================
+
+model Invoice {
+  id            String        @id @default(uuid())
+  invoiceNumber String        @unique // INV-2024-001
+  status        InvoiceStatus @default(DRAFT)
+
+  projectId String
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  customerId String
+  customer   User   @relation("CustomerInvoices", fields: [customerId], references: [id])
+
+  createdById String
+  createdBy   User   @relation("InvoiceCreator", fields: [createdById], references: [id])
+
+  subtotal  Decimal  @db.Decimal(12, 2)
+  tax       Decimal? @db.Decimal(12, 2)
+  total     Decimal  @db.Decimal(12, 2)
+
+  dueDate   DateTime
+  paidAt    DateTime?
+
+  notes String? @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relaciones
+  items InvoiceItem[]
+
+  @@index([projectId])
+  @@index([customerId])
+  @@index([status])
+  @@map("invoices")
+}
+
+model InvoiceItem {
+  id          String  @id @default(uuid())
+  invoiceId   String
+  invoice     Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  description String
+  quantity    Decimal @db.Decimal(10, 2)
+  unitPrice   Decimal @db.Decimal(12, 2)
+  total       Decimal @db.Decimal(12, 2)
+
+  @@index([invoiceId])
+  @@map("invoice_items")
+}
+
+model Proposal {
+  id             String         @id @default(uuid())
+  proposalNumber String         @unique // PROP-2024-001
+  title          String
+  status         ProposalStatus @default(DRAFT)
+
+  projectId String
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  customerId String
+  customer   User   @relation("CustomerProposals", fields: [customerId], references: [id])
+
+  createdById String
+  createdBy   User   @relation("ProposalCreator", fields: [createdById], references: [id])
+
+  content String @db.Text // Contenido del proposal en HTML o Markdown
+
+  total     Decimal   @db.Decimal(12, 2)
+  validUntil DateTime?
+  acceptedAt DateTime?
+  rejectedAt DateTime?
+
+  notes String? @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([projectId])
+  @@index([customerId])
+  @@index([status])
+  @@map("proposals")
+}
+
+// ============================================================================
+// NOTIFICATIONS
+// ============================================================================
+
+model Notification {
+  id       String               @id @default(uuid())
+  userId   String
+  user     User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type     NotificationType
+  priority NotificationPriority @default(NORMAL)
+
+  title   String
+  message String @db.Text
+
+  // Metadata adicional (JSON)
+  metadata Json?
+
+  isRead Boolean @default(false)
+  readAt DateTime?
+
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([isRead])
+  @@index([createdAt])
+  @@map("notifications")
+}
+
+model NotificationToken {
+  id     String @id @default(uuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Token para push notifications (Firebase, OneSignal, etc.)
+  token    String @unique
+  platform String // "ios", "android", "web"
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@map("notification_tokens")
+}
+
+// ============================================================================
+// ACTIVITY LOGS - Auditoría
+// ============================================================================
+
+model ActivityLog {
+  id          String   @id @default(uuid())
+  userId      String?
+  user        User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  action      String   // "create", "update", "delete", "login", etc.
+  resource    String   // "project", "task", "invoice", etc.
+  resourceId  String?  // ID del recurso afectado
+  description String?  @db.Text
+  metadata    Json?    // Datos adicionales
+  ipAddress   String?
+  userAgent   String?
+
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([resource, resourceId])
+  @@index([createdAt])
+  @@map("activity_logs")
+}
