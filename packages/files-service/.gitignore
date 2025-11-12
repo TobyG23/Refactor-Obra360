@@ -1,0 +1,3 @@
+# Uploads directory
+uploads/*
+!uploads/.gitkeep
