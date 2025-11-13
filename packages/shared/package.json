@@ -10,7 +10,7 @@
     "studio": "prisma studio",
     "generate": "prisma generate",
     "db:push": "prisma db push",
-    "db:seed": "ts-node prisma/seed.ts",
+    "db:seed": "npx ts-node prisma/seed.ts",
     "test": "echo \"No tests for shared package\""
   },
   "dependencies": {

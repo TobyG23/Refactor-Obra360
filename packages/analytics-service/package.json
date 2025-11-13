@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "main": "dist/index.js",
   "scripts": {
-    "dev": "nodemon --watch 'src/**/*.ts' --exec 'ts-node' src/index.ts",
+    "dev": "nodemon --watch 'src/**/*.ts' --exec npx ts-node src/index.ts",
     "build": "tsc",
     "start": "node dist/index.js",
     "test": "echo \"No tests yet for analytics-service\""
